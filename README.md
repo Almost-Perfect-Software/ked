@@ -185,23 +185,6 @@ jobs:
     post_deploy:                         # Optional post-deployment actions
       - flushall_redis_cache
 ```
-## Usage
-1. **Configure your settings**: Copy and modify with your specific registry, notification, and deployment settings. `config.yaml`
-2. **Set up authentication**:
-    - For AWS ECR: Configure AWS credentials via environment variables, IAM roles, or AWS CLI
-    - For Docker registries: Set username/password in configuration
-    - For Slack: Create a Slack app and get the required tokens
-    - For Telegram: Create a bot and get the bot token
-
-3. **Run KED**:
-``` bash
-   # Dry run mode (recommended for testing)
-   python3 ked.py
-   
-   # Production mode (set dry_run: false in config)
-   python3 ked.py
-```
-1. **Monitor logs**: KED will continuously monitor the configured registries and deploy matching images automatically.
 
 ## Interactive Commands
 ### Telegram Bot Commands
