@@ -250,6 +250,11 @@ Contributions are what make the open-source community such an amazing place to l
 
 ---
 
+## 👟 KED Icon 
+
+Prompt from AIs:
+Create an icon for the application that deployed images from ECR to Kubernetes. The icon should depict a sneaker, the Kubernetes icon, a gear, and the word KED.
+
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
