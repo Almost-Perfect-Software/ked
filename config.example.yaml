@@ -1,0 +1,79 @@
+dry_run: true # don't deploy anything'
+clear_on_fail: true # delete temporary helm chart directory on failure
+environment: sandbox # your environment name to send notifications
+messenger: slack #telegram
+monitor: ecr #dockerhub
+deploy_timeout: 60 #minutes
+tag_pattern_match: ^(.*)-(\d+\.\d+\.\d+(?:-\w+)?)$
+
+slack:
+  app_token: xapp-1-aaaa-bbbb-cccc
+  bot_token: xoxb-123-456-abc123
+  channel: C123456789
+  msg_max_size: 4000
+
+telegram:
+  bot_token: 123456:abc123
+  chat_id: -123456
+  msg_max_size: 4000
+
+ecr:
+  poll_interval_seconds: 30
+  region: eu-central-1
+  repositories:
+    - platform
+    - frontend
+
+dockerhub:
+  registry_url: https://hub.docker.com
+  repositories:
+  username: ked-username
+  password: password
+  poll_interval_seconds: 30
+
+repository:
+  - name: bitbucket
+    url: https://api.bitbucket.org/2.0/repositories/acme-corp
+    username: ked-username
+    token: abc123
+
+helm_repo:
+  - name: acme-corp
+    path: nb-helm-repo
+    type: s3
+  - name: bitnami
+    path: https://charts.bitnami.com/bitnami
+    type: https
+
+jobs:
+  - registry: devops # repo name
+    name: nb-devops
+    tag: ked-ecr-test-* # tag pattern
+    namespace: default # k8s namespace
+    helm_repo: acme-corp # from helm_repo section
+    helm_chart: acme-devops
+    helm_name: acme-devops # helm chart deployment name
+    helm_branch: src/master
+    helm_values_repo: bitbucket # repo name from repository section
+    helm_values_project: nb_helm # helm values repo name
+    helm_default_values_file: values.yaml
+    helm_values_files:  # additional helm values files
+      - common.yml
+    #...(repeat for more jobs)
+  - registry: platform
+    name: nb-platform
+    tag: dev-platform-* # tag pattern
+    namespace: platform # k8s namespace
+    helm_repo: acme-corp # from helm_repo section
+    helm_chart: acme-platform
+    helm_name: acme-platform # helm chart deployment name
+    helm_branch: src/dev-release-123
+    helm_values_repo: bitbucket # repo name from repository section
+    helm_values_project: nb_helm # helm values repo name
+    helm_default_values_file: values.yaml
+    helm_values_files: # additional helm values files
+      - common.yml
+      - preprod.yml
+    post_deploy:
+      - test_task
+    project: platform # additional argument for post_deploy script

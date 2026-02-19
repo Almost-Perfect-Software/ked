@@ -1,0 +1,188 @@
+# Default values for ked.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: 1234567890.dkr.ecr.eu-central-1.amazonaws.com/devops
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "ked-0.1.6"
+
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::1122334455:role/ked-service-account
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ked-service-account
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+   limits:
+     cpu: 100m
+     memory: 128Mi
+   requests:
+     cpu: 100m
+     memory: 128Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+
+configmap:
+  dry_run: false
+  clear_on_fail: true
+  environment: "preprod"
+  messenger: slack
+  monitor: ecr
+  deploy_timeout: 60 #minutes
+  tag_pattern_match: ^(.*)-(\d+\.\d+\.\d+(?:-\w+)?)$
+
+  ecr:
+    region: eu-central-1
+    repositories: [
+      "acme-service1",
+      "acme-service2",
+      "acme-service3",
+      "acme-service4",
+      "acme-platform"
+    ]
+    poll_interval_seconds: 30
+
+  helm_repo:
+    - name: acme
+      path: acme-helm-repo
+      type: s3
+
+  jobs:
+    - name: acme-service1
+      registry: acme-service1
+      tag: rc-*
+      namespace: preprod-service1
+      helm_repo: acme
+      helm_chart: acme-node
+      helm_name: acme-service1
+      helm_branch: src/master
+      helm_values_repo: bitbucket
+      helm_values_project: helm
+      helm_default_values_file: values.yaml
+      helm_values_files: [ "preprod.yml" ]
+    - name: acme-service2
+      registry: acme-service2
+      tag: rc-*
+      namespace: preprod-service2
+      helm_repo: acme
+      helm_chart: acme-node
+      helm_name: acme-service2
+      helm_branch: src/master
+      helm_values_repo: bitbucket
+      helm_values_project: helm
+      helm_default_values_file: values.yaml
+      helm_values_files: [ "preprod.yml" ]
+      post_deploy: [ "test_task" ]
+    - name: acme-service3
+      registry: acme-service3
+      tag: rc-main-*
+      namespace: preprod-service3
+      helm_repo: acme
+      helm_chart: acme-service3
+      helm_name: acme-service3
+      helm_branch: src/master
+      helm_values_repo: bitbucket
+      helm_values_project: helm
+      helm_default_values_file: values.yaml
+      helm_values_files: [ "preprod.yml" ]
+      post_deploy: [ "test_task" ]
+    - name: acme-service4
+      registry: acme-service4
+      tag: rc-*
+      namespace: preprod-service4
+      helm_repo: acme
+      helm_chart: acme-node
+      helm_name: acme-service4
+      helm_branch: src/master
+      helm_values_repo: bitbucket
+      helm_values_project: acme_helm
+      helm_default_values_file: values.yaml
+      helm_values_files: [ "preprod.yml" ]
+    - name: acme-platform
+      registry: acme-platform
+      tag: rc-platform-*
+      namespace: preprod-platform
+      helm_repo: acme
+      helm_chart: acme-platform
+      helm_name: acme-platform
+      helm_branch: src/master
+      helm_values_repo: bitbucket
+      helm_values_project: helm
+      helm_default_values_file: values.yaml
+      helm_values_files: [ "preprod.yml" ]
+      post_deploy: [ "test_task" ]
+
+
+#configMapFiles:
+#  config.yaml: |
+#
+#  fluentd-inputs.conf: |
+
+# Additional volumes on the output Deployment definition.
+volumes:
+ - name: config
+   secret:
+     secretName: ked
+     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+ - name: config
+   mountPath: "/home/ked/config"
+   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,17 @@
+# Messaging platforms
+slack_bolt>=1.18.0
+
+# AWS integration
+boto3>=1.34.0
+
+# Configuration and data handling
+pyyaml>=6.0
+
+# HTTP requests
+requests>=2.31.0
+
+# Redis cache
+redis>=5.0.0
+
+# AWS CLI for post/pre-deploy
+awscliv2>=2.3.1
